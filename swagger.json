@@ -1,0 +1,145 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "API de Exemple",
+    "description": "Ceci est une API de démonstration.",
+    "version": "1.0.0"
+  },
+  "components": {
+    "schemas": {
+      "Player": {
+        "type": "object",
+        "properties": {
+          "firstName": { "type": "string" },
+          "lastName": { "type": "string" },
+          "email": { "type": "string" },
+          "phoneNumber": { "type": "integer" },
+          "region": { "type": "string" }
+        },
+        "required": ["firstName", "lastName", "phoneNumber"]
+      },
+      "User": {
+        "type": "object",
+        "properties": {
+          "username": { "type": "string" },
+          "email": { "type": "string" },
+          "password": { "type": "string" },
+          "role": { "type": "string", "enum": ["admin", "subadmin"], "default": "subadmin" }
+        },
+        "required": ["username", "email", "password"]
+      }
+    }
+  },
+  "paths": {
+    "/api/player/registerPlayer": {
+      "post": {
+        "summary": "Ajoute un nouveau joueur",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": { "schema": { "$ref": "#/components/schemas/Player" } }
+          }
+        },
+        "responses": { "201": { "description": "Joueur ajouté avec succès" }, "400": { "description": "Données du joueur non valides" }, "500": { "description": "Erreur interne du serveur" } }
+      }
+    },
+
+    "/api/player/players": {
+      "get": {
+        "summary": "Récupérer tous les joueurs",
+        "responses": {
+          "200": {
+            "description": "Liste des joueurs récupérée avec succès",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": { "$ref": "#/components/schemas/Player" }
+                }
+              }
+            },
+          "500": {
+            "description": "Erreur interne du serveur"
+          }
+        }
+      }
+    }
+  },
+
+    "/api/player/player/{id}": {
+      "get": {
+        "summary": "Récupère un joueur par ID",
+        "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }],
+        "responses": { "200": { "description": "Réponse réussie", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Player" } } } }, "404": { "description": "Joueur non trouvé" }, "500": { "description": "Erreur interne du serveur" } }
+      }
+    },
+    "/api/player/updatePlayer/{id}": {
+      "put": {
+        "summary": "Met à jour un joueur par ID",
+        "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }],
+        "requestBody": { "required": true, "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Player" } } } },
+        "responses": { "200": { "description": "Joueur mis à jour avec succès" }, "404": { "description": "Joueur non trouvé" }, "500": { "description": "Erreur interne du serveur" } }
+      }
+    },
+    "/api/player/deletePlayer/{id}": {
+      "delete": {
+        "summary": "Supprime un joueur par ID",
+        "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }],
+        "responses": { "200": { "description": "Joueur supprimé avec succès" }, "404": { "description": "Joueur non trouvé" }, "500": { "description": "Erreur interne du serveur" } }
+      }
+    },
+    "/api/user/register": {
+      "post": {
+        "summary": "Ajouter un nouvel utilisateur",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": { "schema": { "$ref": "#/components/schemas/User" } }
+          }
+        },
+        "responses": { "201": { "description": "Utilisateur ajouté avec succès" }, "400": { "description": "Données utilisateur non valides" }, "500": { "description": "Erreur interne du serveur" } }
+      }
+    },
+    "/api/user/": {
+      "get": {
+        "summary": "Récupérer tous les utilisateurs",
+        "responses": { "200": { "description": "Liste des utilisateurs récupérée avec succès" }, "500": { "description": "Erreur interne du serveur" } }
+      }
+    },
+    "/api/user/delete/{id}": {
+      "delete": {
+        "summary": "Supprimer un utilisateur par ID",
+        "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }],
+        "responses": { "200": { "description": "Utilisateur supprimé avec succès" }, "404": { "description": "Utilisateur non trouvé" }, "500": { "description": "Erreur interne du serveur" } }
+      }
+    },
+    "/api/user/login": {
+      "post": {
+        "summary": "Connectez-vous en tant qu'utilisateur",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "email": { "type": "string" },
+                  "password": { "type": "string" }
+                },
+                "required": ["email", "password"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": { "description": "Connexion réussie. Retourne un jeton d'accès.", "content": { "application/json": { "schema": { "type": "object", "properties": { "accessToken": { "type": "string" } } } } } },
+          "400": { "description": "Requête incorrecte. Les champs 'email' et 'password' sont obligatoires." },
+          "401": { "description": "Non autorisé. L'email ou le mot de passe est incorrect." },
+          "500": { "description": "Erreur interne du serveur." }
+        }
+      }
+    }
+  }
+}
+
+  
