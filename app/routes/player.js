@@ -12,6 +12,7 @@ router.put('/updatePlayer/:id', PlayerController.updatePlayer);
 router.delete('/deletePlayer/:id', PlayerController.deletePlayer);
 router.get('/Allplayers', PlayerController.getAllPlayers);
 router.get('/getRandomPlayer', PlayerController.getRandomPlayer);
+router.get('/winner', PlayerController.getWinner);
 
 
 

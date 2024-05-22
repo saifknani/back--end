@@ -9,24 +9,16 @@ export class PlayerController {
     static async addPlayer(req, res) {
         try {
             const { firstName, lastName, email, phoneNumber, region } = req.body;
-
+    
             if (!firstName || !lastName || !phoneNumber) {
                 res.status(400);
                 throw new Error('All fields are mandatory!');
             }
-
+    
             const existingPlayer = await Player.findOne({ email });
             if (existingPlayer) {
-                // Si un joueur avec la même adresse e-mail existe déjà, mettez à jour ses informations au lieu d'ajouter un nouvel enregistrement
-                existingPlayer.firstName = firstName;
-                existingPlayer.lastName = lastName;
-                existingPlayer.phoneNumber = phoneNumber;
-                existingPlayer.region = region;
-
-                await existingPlayer.save();
                 res.status(200).json({ _id: existingPlayer.id, message: 'Player information updated' });
             } else {
-                // Sinon, créez un nouveau joueur et enregistrez-le dans la base de données
                 const newPlayer = await Player.create({
                     firstName,
                     lastName,
@@ -34,7 +26,7 @@ export class PlayerController {
                     phoneNumber,
                     region,
                 });
-
+    
                 res.status(201).json({ _id: newPlayer.id, message: 'New player added' });
             }
         } catch (error) {
@@ -50,25 +42,25 @@ export class PlayerController {
             const worksheet = workbook.Sheets[firstSheetName];
             const excelData = xlsx.utils.sheet_to_json(worksheet);
     
-            // Assurez-vous que les colonnes spécifiées correspondent exactement aux en-têtes de colonnes dans votre fichier Excel
             const firstNameCol = "Participant Name";
             const emailCol = "Participant email";
             const phoneNumberCol = "phoneNumber";
+            const regionCol = "region";
     
-            const importedPlayers = []; // Tableau pour stocker les données des joueurs importés
+            const importedPlayers = [];
     
             for (let i = 0; i < excelData.length; i++) {
                 const rowData = excelData[i];
                 const fullName = rowData[firstNameCol];
                 const email = rowData[emailCol];
                 const phoneNumber = rowData[phoneNumberCol];
+                const region = rowData[regionCol];
     
-                if (!fullName || !email || !phoneNumber) {
+                if (!fullName || !email || !phoneNumber || !region) {
                     console.error(`Missing mandatory fields in record ${i + 1}. Skipping...`);
                     continue;
                 }
     
-                // Utilisez une expression régulière pour extraire le prénom et le nom du participant
                 const nameMatch = fullName.match(/^(\S+)\s(.+)$/);
                 if (!nameMatch) {
                     console.error(`Invalid name format in record ${i + 1}. Skipping...`);
@@ -77,32 +69,26 @@ export class PlayerController {
                 const firstName = nameMatch[1];
                 const lastName = nameMatch[2];
     
-                // Vérifiez si le joueur existe déjà dans la base de données
                 const existingPlayer = await Player.findOne({ email });
     
                 if (existingPlayer) {
-                    // Mettre à jour les informations du joueur existant avec les nouvelles données du fichier Excel
-                    existingPlayer.firstName = firstName;
-                    existingPlayer.lastName = lastName;
-                    existingPlayer.phoneNumber = phoneNumber;
-    
-                    await existingPlayer.save();
-                    importedPlayers.push(existingPlayer); // Ajouter le joueur mis à jour au tableau des joueurs importés
+                    console.log(`Player with email ${email} already exists. Skipping...`);
+                    importedPlayers.push(existingPlayer);
                 } else {
-                    // Créez un nouveau joueur et enregistrez-le dans la base de données
                     const newPlayer = await Player.create({
                         firstName,
                         lastName,
                         email,
                         phoneNumber,
+                        region,
                     });
-                    importedPlayers.push(newPlayer); // Ajouter le nouveau joueur au tableau des joueurs importés
+                    importedPlayers.push(newPlayer);
                 }
             }
     
-            return { players: importedPlayers }; // Renvoyer les données des joueurs importés au format JSON
+            return { players: importedPlayers };
         } catch (error) {
-            console.error('Error importing Excel file:', error); // Log any errors
+            console.error('Error importing Excel file:', error);
             throw new Error('Failed to import Excel file');
         }
     }
@@ -234,4 +220,25 @@ export class PlayerController {
             return handler(res, 'INTERNAL_SERVER_ERROR', 'An internal server error occurred', 500);
         }
     }
+
+
+    static async getWinner(req, res) {
+        try {
+            // Recherche du joueur gagnant dans la base de données
+            const winner = await Player.findOne({ winner: true });
+    
+            if (winner) {
+                // Si un joueur gagnant existe, le renvoyer
+                return res.status(200).json(winner);
+            } else {
+                // Si aucun joueur gagnant n'est trouvé, renvoyer un code de succès sans contenu
+                return res.status(204).end();
+            }
+        } catch (error) {
+            // En cas d'erreur, renvoyer une réponse avec le code d'erreur approprié
+            return res.status(500).json({ error: 'An internal server error occurred' });
+        }
+    }
+    
+
 }
